@@ -26,7 +26,7 @@ function PlayerService(PlayerModel){
         });
     }
 
-    //procurar
+    //procurar tudo
     function findAll(){
         return new Promise(function (resolve, reject){
             PlayerModel.find({}, function (err, users) {
@@ -38,31 +38,41 @@ function PlayerService(PlayerModel){
         });
     }
 
-    function findById(id) {
+
+    //procurar por id
+    function findById(id){
         return new Promise(function (resolve, reject) {
             PlayerModel.findById(id, function (err, user) {
-                if (err) reject (err);
-                // object of all the users
-                resolve(user);
-            })
-        })
-    }
-
-    function update(id, values) {
-        return new Promise(function (resolve, reject) { 
-            PlayerModel.findByIdAndUpdate(id, values, function(err, user) {
                 if(err) reject(err);
 
+                //objecto de todos os users
                 resolve(user);
             });
         });
     }
 
-    function removeById(id) {
+
+    //atualizar
+    function update(id, values){
         return new Promise(function (resolve, reject) {
+             //values - {name: jose} || {lastname: carvalho} || { name: j, lastname: c }
+             PlayerModel.findByIdAndUpdate(id, values, function (err, user) {
+                if(err) reject(err);
+
+                resolve(user);
+             });
+        });
+    }
+
+
+    //remover pelo id
+    function removeById(id){
+        return new  Promise(function (resolve, reject) {
             console.log(id);
+             
             PlayerModel.findByIdAndRemove(id, function (err) {
                 console.log(err);
+
                 if(err) reject(err);
                 resolve();
             });

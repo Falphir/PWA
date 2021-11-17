@@ -1,129 +1,161 @@
 const express = require('express');
 const Players = require('../data/players');
+const Player = require('../data/players/player');
 
 
 function PlayerRouter(){
 
     let router = express();
 
-    router.use(express.json({ limit: '100mb' }));
-    router.use(express.urlencoded({ limit: '100mb', extended: true }));
+    //camadas
+    router.use(express.json( {
+         limit: '100mb' }
+    ));
+
+    router.use(express.urlencoded( 
+        { limit: '100mb', extended: true }
+    ));
 
     router.use(function (req, res, next) {
-        console.log('Time:', Date.now())
+        var today = new Date(); 
+
+        console.log('Time:', today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds());
         next();
-    })
+    });
+    //fim camadas
+
+
+
 
     router.route('/players')
-        //GET
-        //get do findAll players
+        //GET - findAll players
         .get(function (req, res, next) {
-            console.log('get all Players'); //retorna todos os players
             Players.findAll()
                 .then((players) => {
+                    console.log('---|all players|---'); //retorna todos os players
                     res.send(players);
                     next();
                 })
                 .catch((err) => {
+                    console.log('"---|error|---"');
                     next();
                 });
         })
 
-        //POST
+        //POST - create player
         .post(function (req, res, next) {
-            console.log('post');
+            console.log('---|create player|---');
             let body = req.body;
 
-            //post do create players
             Players.create(body)
                 .then(() => {
-                    console.log('gravei');
+                    console.log('save');
                     res.status(200);
                     res.send(body);
                     next();
                 })
                 .catch((err) => {
-                    console.log('já existe');
+                    console.log('"---|error|---"');
+                    console.log('player already exists');
                     err.status = err.status || 500;
                     res.status(401);
                     next();
                 });
         });
 
+
+
+
+        router.route('/players/:playerId')
+            //GET - findById player
+            .get(function (req, res, next) {
+                let playerId = req.params['playerId'];
+
+                Players.findById(playerId)
+                    .then((player) => {
+                        console.log('---|find one player by ID|---'); //retorna o player pelo Id
+                        res.status(200);
+                        res.send(player);
+                        next();
+                    })
+
+                    .catch((err) => {
+                        console.log('"---|error|---"');
+                        res.status(404);
+                        next();
+                    });
+            })
+
+            //PUT - update player by ID
+            .put(function (req, res, next) {
+                let playerId = req.params['playerId'];
+                let body = req.body;
+
+                Players.update(playerId, body)
+                    .then((player) => {
+                        console.log('---|update one player by ID|---'); //altera dados do player
+                        res.status(200);
+                        res.send(player);
+                        next();
+                    })
+
+                    .catch((err) => {
+                        console.log('"---|error|---"');
+                        res.status(404);
+                        next();
+                    });
+            })
+
+            //DELETE - delete player by ID
+            .delete(function (req, res, next) {
+                let playerId = req.params['playerId'];
+
+                Players.removeById(playerId)
+                    .then(() => {
+                        console.log("---|delete one player by ID|---");
+                        res.status(200);
+                        next();
+                    })
+
+                    .catch((err) => {
+                        console.log('"---|error|---"');
+                        res.status(404);
+                        next();
+                    });
+            });
+
+
+
+
+            router.route('/players/:playerId/hobbies')
+                //GET - findById player return hobbies
+                .get(function (req, res, next) {
+                    let playerId = req.params['playerId'];
+                    let hobbies = req.body.hobbies;
+    
+                    Players.findById(playerId)
+                        .then((player) => {
+                            console.log('---|find one player by ID return hobbies|---'); //retorna o hobbie do player pelo Id
+                            res.status(200);
+                            res.send(hobbies);
+                            next();
+                        })
+    
+                        .catch((err) => {
+                            console.log('"---|error|---"');
+                            res.status(404);
+                            next();
+                        });
+                })
+
+
+
+
     router.route('/team')
         .put(function (req, res) {
             console.log('put');
             res.send('put');
         });
-
-    router.route('/players/:playerId')
-        .get(function (req, res, next) {
-            console.log('get for one Id');
-            let playerId = req.params['playerId'];
-
-            Players.findById(playerId)
-                .then((player) => {
-                    res.status(200);
-                    res.send(player);
-                    next();
-                })
-                .catch((err) => {
-                    res.status(404);
-                    next();
-                });
-        
-        })
-    .put(function (req, res, next) {
-        let playerId = req.params['playerId'];
-        let body = req.body;
-        console.log(body);
-        Players.update(playerId, body)
-            .then((player) => {
-                res.status(200);
-                res.send(player);
-                next();
-            })
-            .catch((err) => {
-                res.status(404);
-                next();
-            })
-    })
-    .delete(function (req, res, next) {
-        console.log('del for one Id');
-        let playerId = req.params.playerId;
-        Players.removeById(playerId)
-            .then(() => {
-                console.log('test');
-                res.status(200).json();
-                next();
-            })
-            .catch ((err) => {
-                console.log('err');
-                res.status(404);
-                next();
-            });
-    });
-    
-    router.route('/players/:playerId/hobbies')
-    .get(function (req, res, next) {
-        console.log('get for one Id');
-        let playerId = req.params['playerId'];
-        let hobbies = req.body.hobbies;
-
-        Players.findById(playerId)
-            .then((player) => {
-                res.status(200);
-                res.send(hobbies);
-                next();
-            })
-            .catch((err) => {
-                res.status(404);
-                next();
-            });
-    
-    })
-
-    
 
 
     return router;
