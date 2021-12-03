@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 
+const cors = require('cors');
 const hostname = '127.0.0.1';
 const port = 3000;
 
@@ -16,6 +17,7 @@ var mongoose = require('mongoose');
 }); */
 
 var app = express();
+app.use(cors());
 app.use(router.initialize());
 
 app.use(express.json())

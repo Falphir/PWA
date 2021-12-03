@@ -33,6 +33,10 @@ function PlayerRouter(){
             Players.findAll()
                 .then((players) => {
                     console.log('---|all players|---'); //retorna todos os players
+                    const response = {
+                        auth: true,
+                        players: players
+                    }
                     res.send(players);
                     next();
                 })
