@@ -27,13 +27,30 @@ function PlayerService(PlayerModel){
     }
 
     //procurar tudo
-    function findAll(){
+    function findAll(pagination){
+        const { limit, skip } = pagination;
+
         return new Promise(function (resolve, reject){
-            PlayerModel.find({}, function (err, users) {
+            PlayerModel.find({}, {}, { skip, limit }, function (err, users) {
                 if (err) reject(err);
 
                 //objecto de todos os users
                 resolve(users);
+            });
+        })
+
+        .then(async (users) => {
+            
+            const totalUsers = await PlayerModel.count();
+
+            return Promise.resolve({
+                players: users,
+                pagination: {
+                    pageSize: limit,
+                    page: Math.floor(skip / limit),
+                    hasMore: (skip + limit) < totalUsers,
+                    total: totalUsers
+                }
             });
         });
     }

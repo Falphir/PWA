@@ -1,6 +1,11 @@
+const cookieParser = require('cookie-parser');
 const express = require('express');
 const Players = require('../data/players');
 const Player = require('../data/players/player');
+const Users = require('../data/users');
+const scopes = require('../data/users/scopes');
+const pagination = require('../middleware/pagination');
+const VerifyToken = require('../middleware/Token');
 
 
 function PlayerRouter(){
@@ -8,13 +13,9 @@ function PlayerRouter(){
     let router = express();
 
     //camadas
-    router.use(express.json( {
-         limit: '100mb' }
-    ));
+    router.use(express.json( { limit: '100mb' } ));
 
-    router.use(express.urlencoded( 
-        { limit: '100mb', extended: true }
-    ));
+    router.use(express.urlencoded( { limit: '100mb', extended: true } ));
 
     router.use(function (req, res, next) {
         var today = new Date(); 
@@ -22,32 +23,61 @@ function PlayerRouter(){
         console.log('Time:', today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds());
         next();
     });
+
+    router.use(cookieParser());
+    
+    router.use(VerifyToken);
+
+    router.use(pagination);
     //fim camadas
 
 
-
+    
 
     router.route('/players')
         //GET - findAll players
-        .get(function (req, res, next) {
+        .get(Users.autorize([scopes["read-all"], scopes["read-posts"]]), function (req, res, next) {
+            Players.findAll(req.pagination)
+                .then((responseServer) => {
+                    console.log('---|all players|---'); //retorna todos os players
+
+                    const response = {
+                        auth: true,
+                        ...responseServer
+                    };
+
+                    res.send(response);
+                    next();
+                })
+                .catch((err) => {
+                    console.log(err);
+                    next();
+                });
+        })
+
+    /* router.route('/players')
+        //GET - findAll players
+        .get(Users.autorize([scopes["read-all"], scopes["read-posts"]]), function (req, res, next) {
             Players.findAll()
                 .then((players) => {
                     console.log('---|all players|---'); //retorna todos os players
+
                     const response = {
                         auth: true,
                         players: players
-                    }
-                    res.send(players);
+                    };
+
+                    res.send(response);
                     next();
                 })
                 .catch((err) => {
                     console.log('"---|error|---"');
                     next();
                 });
-        })
+        }) */
 
         //POST - create player
-        .post(function (req, res, next) {
+        .post(Users.autorize([scopes["manage-posts"]]), function (req, res, next) {
             console.log('---|create player|---');
             let body = req.body;
 

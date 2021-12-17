@@ -11,6 +11,7 @@ function UserService(UserModel){
         findUser,
         createPassword,
         comparePassword,
+        autorize
     };
 
 
@@ -41,7 +42,8 @@ function UserService(UserModel){
             newUser.save(function (err) {
 
                 if (err) reject("There is a problem with register");
-                resolve("user created");
+                console.log(err);
+                resolve(newUser);
             });
         });
     }
@@ -50,7 +52,7 @@ function UserService(UserModel){
     //criar token
     function createToken(user){
         
-        let token = jwt.sign({ id: user._id }, config.secret, {
+        let token = jwt.sign({ id: user._id, role: user.role.scopes }, config.secret, {
             expiresIn: config.expiresPassword 
         });
 
@@ -68,7 +70,6 @@ function UserService(UserModel){
 
                     reject();
                 }
-
                 return resolve(decoded);
             })
         })
@@ -113,6 +114,22 @@ function UserService(UserModel){
         return bcrypt.compare(password, hash);
     }
 
+
+    //autorizar
+    function autorize(scopes){
+
+        return (req, res, next) => {
+            const { roleUser } = req;
+            const hasAutorization = scopes.some(scope => roleUser.includes(scope));
+
+            if(roleUser && hasAutorization){
+                next();
+
+            } else {
+                res.status(403).json({message: 'forbidden'});
+            }
+        }
+    }
 
 
     return service;

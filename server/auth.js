@@ -1,3 +1,4 @@
+const cookieParser = require('cookie-parser');
 const express = require('express');
 const Users = require('../data/users');
 
@@ -5,13 +6,11 @@ function AuthRouter(){
     let router = express();
 
     //camadas
-    router.use(express.json( {
-        limit: '100mb' }
-    ));
+    router.use(express.json( { limit: '100mb' } ));
 
-    router.use(express.urlencoded( 
-       { limit: '100mb', extended: true }
-    ));
+    router.use(express.urlencoded( { limit: '100mb', extended: true } ));
+
+    router.use(cookieParser())
     //fim camadas
 
 
@@ -38,6 +37,7 @@ function AuthRouter(){
                     console.log("error");
                     res.status(500);
                     res.send(err);
+                    console.log(err);
                     next();
                 });
         });
@@ -83,11 +83,12 @@ function AuthRouter(){
             //console.log(name);
             //console.log(password);
 
-            Users.findUser({ name, password })
+            return Users.findUser({ name, password })
                 .then((user) => Users.createToken(user))
 
                 .then((response) => {
                     console.log('save');
+                    res.cookie('token', login.token, { httpOnly: true });
                     res.status(200);
                     res.send(response);
                 })

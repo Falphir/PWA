@@ -17,7 +17,9 @@ var mongoose = require('mongoose');
 }); */
 
 var app = express();
+
 app.use(cors());
+
 app.use(router.initialize());
 
 app.use(express.json())
