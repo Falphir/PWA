@@ -1,6 +1,7 @@
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const Users = require('../data/users');
+const VerifyToken = require ('../middleware/Token');
 
 function AuthRouter(){
     let router = express();
@@ -87,7 +88,6 @@ function AuthRouter(){
                 .then((user) => Users.createToken(user))
 
                 .then((response) => {
-                    console.log('save');
                     res.cookie('token', login.token, { httpOnly: true });
                     res.status(200);
                     res.send(response);
@@ -101,8 +101,18 @@ function AuthRouter(){
                 });
         });
 
-
-
+        router.use(cookieParser());
+        router.use(VerifyToken);
+    
+        router.route('/logout')
+            .get(function(req, res, next) {
+                res.cookie('token', req.cookies.token, { httpOnly: true, maxAge:0 })
+                
+                res.status(200);
+                res.send({logout: true})
+                next();
+            })
+    
 
 
         return router;
